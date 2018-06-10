@@ -15,22 +15,28 @@
       #messages .showname {
         font-style: italic;
       }
+      .box-content {
+        overflow-x: hidden;
+        /*overflow-y: hidden;*/
+      }
     </style>
   </head>
   <body>
     <div class="container-fluid">
-      <div class="row">
-        <div class="col-xs-6 col-sm-6 col-md-8">
-          <ul class="list-group list-group-flush" id="messages"></ul>
-        </div>
-        <div class="col-xs-6 col-sm-6 col-md-4">
-          <ul class="list-group list-group-flush" id="listusers"></ul>
-          <div class="form-group mt-3 col-xs-12 col-sm-8 col-md-6">
-            <label for="callname">Your name</label>
-            <input type="text" class="form-control" id="callname" value="" />
+      <!-- <div id="box-content"> -->
+        <div class="row">
+          <div class="col-xs-6 col-sm-6 col-md-8 box-content">
+            <ul class="list-group list-group-flush" id="messages"></ul>
+          </div>
+          <div class="col-xs-6 col-sm-6 col-md-4">
+            <ul class="list-group list-group-flush" id="listusers"></ul>
+            <div class="form-group mt-3 col-xs-12 col-sm-8 col-md-6">
+              <label for="callname">Your name</label>
+              <input type="text" class="form-control" id="callname" value="" />
+            </div>
           </div>
         </div>
-      </div>
+      <!-- </div> -->
       <form class="needs-validation position-fixed fixed-bottom" novalidate>
         <input type="hidden" id="fromuser" value="" />
         <div class="form-row">
@@ -49,65 +55,5 @@
   <script src="assets/jquery/jquery-3.3.1.min.js"></script>
   <script src="assets/bootstrap-4.1.1/js/bootstrap.min.js"></script>
   <script src="assets/socket.io/socket.io.js"></script>
-  <script>
-    var urlParams = new URLSearchParams(window.location.search);
-    $(function () {
-      // let userid = urlParams.get('userid');
-      let userid = Math.random().toString(36).substr(7);
-      $('#fromuser').val(userid);
-      $('#callname').val(userid);
-      let queryParams = 'userid=' + userid;
-      const socket = io('http://192.168.43.209:3000/?' + queryParams, {
-        path: '/test'
-      });
-      $('form').submit(function(){
-        if ($('#msgsend').val() !== '') {
-          socket.emit('chat message', {
-            msgsend: $('#msgsend').val(),
-            touser: $('#touser').val(),
-            fromuser: $('#fromuser').val()
-          });
-          $('#msgsend').val('');
-        }
-        return false;
-      });
-      $('#callname').blur(function() {
-        if ($(this).val() !== '') {
-          socket.emit('change name', {
-            userid: userid,
-            newname: $('#callname').val()
-          });
-        } else {
-          $(this).focus();
-        }
-      });
-      socket.on('chat message', function(data) {
-        $('#messages').append($('<li class="list-group-item user-' + data.fromuser + '">').html('<i class="fas fa-comment text-info"> <span class="showname">' + data.callname + ' :</span></i> ' + data.msgsend));
-      });
-      socket.on('chat message error', function(data) {
-        $('#messages').append($('<li>').text('Not found user::' + data.touser));
-      });
-      socket.on('user connect', function(data) {
-        $.each(data, function(i, v) {
-          if ($('#listusers').find('.user-' + i).length == 0) {
-            $('#listusers').append($('<li class="list-group-item user-' + i + '">').html('<i class="fas fa-user"></i> <span class="showname">' + v.callname + '</span>'));
-            if (i !== $('#fromuser').val()) {
-              $('#touser').append($('<option value="' + i + '" class="user-' + i + '">' + v.callname + '</option>'));
-            }
-          }
-        });
-      });
-      socket.on('update name', function(data) {
-        $('#touser').find('[value="' + data.userid + '"]').text(data.newname);
-        $('#listusers').find('.user-' + data.userid).find('.showname').text(data.newname);
-        $('#messages').find('.user-' + data.userid).find('.showname').text(data.newname);
-      });
-      socket.on('user disconnect', function(data) {
-        if (data.user !== userid) {
-          $('#touser').find('.user-' + data.user).remove();
-          $('#listusers').find('.user-' + data.user).remove();
-        }
-      });
-    });
-  </script>
+  <script src="index.js"></script>
 </html>
